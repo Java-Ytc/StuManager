@@ -1,7 +1,3 @@
--- 该 SQL 文件用于创建和初始化学生管理系统数据库 StuManager
--- 包含了管理员、学生、教师、课程、考勤、成绩等相关表的创建和数据插入操作
--- 表创建顺序已调整为符合外键依赖关系
-
 -- 设置字符集为 UTF-8
 SET NAMES utf8;
 
@@ -11,28 +7,59 @@ CREATE DATABASE IF NOT EXISTS StuManager DEFAULT CHARACTER SET utf8;
 -- 使用 StuManager 数据库
 USE StuManager;
 
+-- 临时禁用外键约束
+SET FOREIGN_KEY_CHECKS = 0;
 
-### 一、无依赖基础表（无外键引用） ###
--- 创建班级表 s_clazz（无依赖，其他表依赖它）
+-- 删除所有表，从依赖表开始删除
+DROP TABLE IF EXISTS s_attendance;
+DROP TABLE IF EXISTS s_leave;
+DROP TABLE IF EXISTS s_score;
+DROP TABLE IF EXISTS s_selected_course;
+DROP TABLE IF EXISTS s_course;
+DROP TABLE IF EXISTS s_teacher;
+DROP TABLE IF EXISTS s_student;
 DROP TABLE IF EXISTS s_clazz;
-CREATE TABLE s_clazz (
+DROP TABLE IF EXISTS s_admin;
+DROP TABLE IF EXISTS s_grade;
+
+-- 启用外键约束
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 一、无依赖基础表（无外键引用）
+-- 创建年级表 s_grade（无依赖，其他表依赖它）
+CREATE TABLE s_grade (
                          id    INT(5)      NOT NULL AUTO_INCREMENT,
                          name  VARCHAR(32) NOT NULL,
-                         info  VARCHAR(128) DEFAULT NULL,
+                         remark TEXT DEFAULT NULL,
                          PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+
+-- 插入年级表初始数据
+INSERT INTO s_grade (id, name, remark)
+VALUES
+    (1, '2023级', '2023年入学的年级'),
+    (2, '2024级', '2024年入学的年级');
+
+-- 创建班级表 s_clazz（依赖 s_grade.id）
+CREATE TABLE s_clazz (
+                         id       INT(5)      NOT NULL AUTO_INCREMENT,
+                         name     VARCHAR(32) NOT NULL,
+                         info     VARCHAR(128) DEFAULT NULL,
+                         grade_id INT(5)      NOT NULL,  -- 外键关联 s_grade.id
+                         PRIMARY KEY (id),
+                         KEY clazz_grade_idx (grade_id),
+                         CONSTRAINT clazz_grade_fk FOREIGN KEY (grade_id) REFERENCES s_grade (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
--- 插入班级表初始数据
-INSERT INTO s_clazz (id, name, info)
+-- 插入班级表初始数据，同时关联年级
+INSERT INTO s_clazz (id, name, info, grade_id)
 VALUES
-    (1, '软件一班', '软件工程专业。'),
-    (4, '数学一班', '大学数学专业'),
-    (5, '计算机科学与技术一班', '计算机专业');
+    (1, '软件一班', '软件工程专业。', 1),
+    (4, '数学一班', '大学数学专业', 1),
+    (5, '计算机科学与技术一班', '计算机专业', 2);
 
-
-### 二、依赖班级表的基础表 ###
+-- 二、依赖班级表的基础表
 -- 创建教师表 s_teacher（依赖 s_clazz.clazz_id）
-DROP TABLE IF EXISTS s_teacher;
 CREATE TABLE s_teacher (
                            id         INT(5)      NOT NULL AUTO_INCREMENT,
                            sn         VARCHAR(32) NOT NULL,
@@ -58,7 +85,6 @@ VALUES
     (18, 'T11561727746515', '夏青松', '123456', 1, '女', '15174857845', '1745854125', '5d447b8b-ec54-4a8e-919a-453aa7b6d33b.jpg');
 
 -- 创建学生表 s_student（依赖 s_clazz.clazz_id）
-DROP TABLE IF EXISTS s_student;
 CREATE TABLE s_student (
                            id         INT(5)      NOT NULL AUTO_INCREMENT,
                            sn         VARCHAR(32) NOT NULL,
@@ -82,10 +108,8 @@ VALUES
     (4, 'S51528379586807', '王麻子', '111111', 5, '男', '13356565656', '123456', NULL),
     (9, 'S41528633634989', '马冬梅', '1', 5, '男', '13333332133', '131313132323', 'bb12326f-ef6c-4d3d-a2ae-f9eb30a15ad4.jpg');
 
-
-### 三、依赖教师/学生表的课程表 ###
+-- 三、依赖教师/学生表的课程表
 -- 创建课程表 s_course（依赖 s_teacher.teacher_id）
-DROP TABLE IF EXISTS s_course;
 CREATE TABLE s_course (
                           id            INT(5)      NOT NULL AUTO_INCREMENT,
                           name          VARCHAR(32) NOT NULL,
@@ -106,10 +130,8 @@ VALUES
     (2, '大学数学', 10, '周三上午10点', 4, 50, '数学。'),
     (3, '计算机基础', 11, '周三上午', 3, 50, '计算机课程。');
 
-
-### 四、依赖课程/学生表的关联表 ###
+-- 四、依赖课程/学生表的关联表
 -- 创建管理员表 s_admin（无外键依赖，可放在此处或开头）
-DROP TABLE IF EXISTS s_admin;
 CREATE TABLE s_admin (
                          id          INT(5)      NOT NULL AUTO_INCREMENT,
                          username    VARCHAR(32) NOT NULL,
@@ -123,7 +145,6 @@ INSERT INTO s_admin (id, username, password, status)
 VALUES (1, 'admin', '123456', 1);
 
 -- 创建考勤表 s_attendance（依赖 s_course.id 和 s_student.id）
-DROP TABLE IF EXISTS s_attendance;
 CREATE TABLE s_attendance (
                               id           INT(5)      NOT NULL AUTO_INCREMENT,
                               course_id    INT(5)      NOT NULL,  -- 外键关联 s_course.id
@@ -133,8 +154,8 @@ CREATE TABLE s_attendance (
                               PRIMARY KEY (id),
                               KEY attendance_course_idx (course_id),
                               KEY attendance_student_idx (student_id),
-                              CONSTRAINT attendance_course_fk FOREIGN KEY (course_id) REFERENCES s_course (id),
-                              CONSTRAINT attendance_student_fk FOREIGN KEY (student_id) REFERENCES s_student (id)
+                              CONSTRAINT attendance_course_fk FOREIGN KEY (course_id) REFERENCES s_course (id) ON DELETE CASCADE,
+                              CONSTRAINT attendance_student_fk FOREIGN KEY (student_id) REFERENCES s_student (id) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 
 -- 插入考勤表初始数据
@@ -145,7 +166,6 @@ VALUES
     (15, 2, 2, '上午', '2019-07-02');
 
 -- 创建请假表 s_leave（依赖 s_student.id）
-DROP TABLE IF EXISTS s_leave;
 CREATE TABLE s_leave (
                          id          INT(5)      NOT NULL AUTO_INCREMENT,
                          student_id  INT(5)      NOT NULL,  -- 外键关联 s_student.id
@@ -154,7 +174,7 @@ CREATE TABLE s_leave (
                          remark      VARCHAR(512) DEFAULT NULL,
                          PRIMARY KEY (id),
                          KEY leave_student_idx (student_id),
-                         CONSTRAINT leave_student_fk FOREIGN KEY (student_id) REFERENCES s_student (id)
+                         CONSTRAINT leave_student_fk FOREIGN KEY (student_id) REFERENCES s_student (id) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8;
 
 -- 插入请假表初始数据
@@ -162,7 +182,6 @@ INSERT INTO s_leave (id, student_id, info, status, remark)
 VALUES (13, 2, '世界这么大，想去看看', 1, '同意，你很6');
 
 -- 创建成绩表 s_score（依赖 s_course.id 和 s_student.id）
-DROP TABLE IF EXISTS s_score;
 CREATE TABLE s_score (
                          id          INT(5)      NOT NULL AUTO_INCREMENT,
                          student_id  INT(5)      NOT NULL,  -- 外键关联 s_student.id
@@ -172,8 +191,8 @@ CREATE TABLE s_score (
                          PRIMARY KEY (id),
                          KEY score_student_idx (student_id),
                          KEY score_course_idx (course_id),
-                         CONSTRAINT score_course_fk FOREIGN KEY (course_id) REFERENCES s_course (id),
-                         CONSTRAINT score_student_fk FOREIGN KEY (student_id) REFERENCES s_student (id)
+                         CONSTRAINT score_course_fk FOREIGN KEY (course_id) REFERENCES s_course (id) ON DELETE CASCADE,
+                         CONSTRAINT score_student_fk FOREIGN KEY (student_id) REFERENCES s_student (id) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=utf8;
 
 -- 插入成绩表初始数据
@@ -183,7 +202,6 @@ VALUES
     (68, 9, 1, 50.00, '不及格');
 
 -- 创建选课表 s_selected_course（依赖 s_course.id 和 s_student.id）
-DROP TABLE IF EXISTS s_selected_course;
 CREATE TABLE s_selected_course (
                                    id           INT(5) NOT NULL AUTO_INCREMENT,
                                    student_id   INT(5) NOT NULL,  -- 外键关联 s_student.id
@@ -191,8 +209,8 @@ CREATE TABLE s_selected_course (
                                    PRIMARY KEY (id),
                                    KEY selected_course_student_idx (student_id),
                                    KEY selected_course_course_idx (course_id),
-                                   CONSTRAINT selected_course_course_fk FOREIGN KEY (course_id) REFERENCES s_course (id),
-                                   CONSTRAINT selected_course_student_fk FOREIGN KEY (student_id) REFERENCES s_student (id)
+                                   CONSTRAINT selected_course_course_fk FOREIGN KEY (course_id) REFERENCES s_course (id) ON DELETE CASCADE,
+                                   CONSTRAINT selected_course_student_fk FOREIGN KEY (student_id) REFERENCES s_student (id) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8;
 
 -- 插入选课表初始数据
