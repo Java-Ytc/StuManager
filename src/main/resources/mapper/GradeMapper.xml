@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wdd.studentmanager.mapper.GradeMapper">
+
+    <resultMap type="com.wdd.studentmanager.domain.Grade" id="GradeInfo">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="remark" property="remark"/>
+    </resultMap>
+
+    <select id="queryList" resultMap="GradeInfo">
+        SELECT *
+        from s_grade
+        <where>
+            <if test="name!=null"> and name LIKE concat("%",#{name},"%") </if>
+        </where>
+        limit #{startIndex},#{pagesize}
+    </select>
+
+    <select id="queryCount" resultType="int">
+        select count(*) from s_grade
+        <where>
+            <if test="name!=null"> and name LIKE concat("%",#{name},"%") </if>
+        </where>
+    </select>
+
+    <insert id="addGrade" parameterType="Grade">
+        insert into s_grade(name, remark)
+        values(#{name}, #{remark})
+    </insert>
+
+    <delete id="deleteGrade" parameterType="int">
+        delete from s_grade where id = #{id}
+    </delete>
+
+    <update id="editGrade" parameterType="Grade">
+        update s_grade
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="remark != null">
+                remark = #{remark}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="findById" parameterType="int" resultType="Grade">
+        select * from s_grade where id = #{id}
+    </select>
+
+</mapper>
