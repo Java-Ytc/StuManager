@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.wdd.studentmanager.mapper.ClazzMapper">
+<mapper namespace="com.example.studentmanager.mapper.ClazzMapper">
 
-    <resultMap type="com.wdd.studentmanager.domain.Clazz" id="ClazzInfo">
+    <resultMap type="com.example.studentmanager.domain.Clazz" id="ClazzInfo">
         <result column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="info" property="info"/>

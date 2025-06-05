@@ -40,7 +40,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     }
 
     @Override
-    public int addAtendance(Attendance attendance) {
+    public int addAttendance(Attendance attendance) {
         return attendanceMapper.addAttendance(attendance);
     }
 

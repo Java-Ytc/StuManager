@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.wdd.studentmanager.mapper.ScoreMapper">
+<mapper namespace="com.example.studentmanager.mapper.ScoreMapper">
 
-    <resultMap type="com.wdd.studentmanager.domain.Score" id="ScoreInfo">
+    <resultMap type="com.example.studentmanager.domain.Score" id="ScoreInfo">
         <result column="id" property="id"/>
         <result column="course_id" property="courseId"/>
         <result column="student_id" property="studentId"/>

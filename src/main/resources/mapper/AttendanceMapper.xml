@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.wdd.studentmanager.mapper.AttendanceMapper">
+<mapper namespace="com.example.stumanager.mapper.AttendanceMapper">
 
-    <resultMap type="com.wdd.studentmanager.domain.Attendance" id="AttendanceInfo">
+    <resultMap type="com.example.studentmanager.domain.Attendance" id="AttendanceInfo">
         <result column="id" property="id"/>
         <result column="course_id" property="courseId"/>
         <result column="student_id" property="studentId"/>
@@ -33,7 +33,7 @@
         </where>
     </select>
 
-    <insert id="addAtendance" parameterType="Attendance">
+    <insert id="addAttendance" parameterType="Attendance">
         insert into s_attendance(course_id,student_id,type,date)
         values(#{courseId},#{studentId},#{type},#{date})
     </insert>

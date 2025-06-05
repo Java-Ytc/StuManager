@@ -10,7 +10,7 @@ public interface AttendanceService {
 
     boolean isAttendance(Attendance attendance);
 
-    int addAtendance(Attendance attendance);
+    int addAttendance(Attendance attendance);
 
     int deleteAttendance(Integer id);
 }

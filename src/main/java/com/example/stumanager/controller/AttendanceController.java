@@ -101,7 +101,7 @@ public class AttendanceController {
             ajaxResult.setSuccess(false);
             ajaxResult.setMessage("已签到，请勿重复签到！");
         } else {
-            int count = attendanceService.addAtendance(attendance);
+            int count = attendanceService.addAttendance(attendance);
             if (count > 0){
                 // 签到成功
                 ajaxResult.setSuccess(true);
